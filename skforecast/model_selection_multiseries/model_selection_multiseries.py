@@ -629,12 +629,13 @@ def _backtesting_forecaster_multiseries(
     else:
         span_index = series.index
 
+    window_size = forecaster.window_size_diff # initial window size 
     if initial_train_size is not None:
         # First model training, this is done to allow parallelization when `refit`
         # is `False`. The initial Forecaster fit is outside the auxiliary function.
         fold_initial_train = [
             [0, initial_train_size],
-            [initial_train_size - forecaster.window_size, initial_train_size],
+            [initial_train_size - window_size, initial_train_size],
             [0, 0], # dummy values
             [0, 0], # dummy values
             True
@@ -643,7 +644,7 @@ def _backtesting_forecaster_multiseries(
                         series             = series,
                         folds              = [fold_initial_train],
                         span_index         = span_index,
-                        window_size        = forecaster.window_size,
+                        window_size        = window_size,
                         exog               = exog,
                         dropna_last_window = forecaster.dropna_from_series,
                         externally_fitted  = False
@@ -657,12 +658,11 @@ def _backtesting_forecaster_multiseries(
             store_in_sample_residuals = store_in_sample_residuals,
             suppress_warnings         = suppress_warnings
         )
-        window_size = forecaster.window_size
+        
         externally_fitted = False
     else:
         # Although not used for training, first observations are needed to create
         # the initial predictors
-        window_size = forecaster.window_size
         initial_train_size = window_size
         externally_fitted = True
 
